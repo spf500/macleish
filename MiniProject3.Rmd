@@ -32,6 +32,6 @@ initial_map <- leaflet()%>%
   addTiles %>%
   addPolylines(data = Macleish_trails, color = "red")
 initial_map %>%
-  addPolygons(data = Contours, weight = 1, fill = FALSE, group = ~OBJECTID)
+  addPolylines(data = Contours, weight = 1)
 
 ```
