@@ -1,0 +1,27 @@
+---
+title: "Mini Project 3"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE}
+library(tidyverse)
+library(macleish)
+```
+MacLeish has approximately four miles of built trail for use by field station visitors. We would like to be able to classify these trails as “Easy,” “Moderate,” or “Difficult” based on their length and change in elevation. Use the spatial data to develop a heuristic that will classify these (or any other) trails based on their difficulty. You might want to consult existing trail rating systems. It would be cool if you could create elevation profiles (e.g., this one).
+Supporting data includes:
+Existing trails shapefile
+10’ contour elevation data
+
+```{r}
+Macleish_trails <- macleish_layers %>%
+  pluck("trails")
+```
+
+```{r}
+Contours <- macleish_layers %>%
+  pluck("contours_3m")
+```
