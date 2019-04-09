@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(macleish)
 library(leaflet)
+library(sf)
 ```
 MacLeish has approximately four miles of built trail for use by field station visitors. We would like to be able to classify these trails as “Easy,” “Moderate,” or “Difficult” based on their length and change in elevation. Use the spatial data to develop a heuristic that will classify these (or any other) trails based on their difficulty. You might want to consult existing trail rating systems. It would be cool if you could create elevation profiles (e.g., this one).
 Supporting data includes:
@@ -28,10 +29,24 @@ Contours <- macleish_layers %>%
 ```
 
 ```{r}
+trail_colors <- colorFactor("viridis", Macleish_trails %>%
+                              pull(name))
+```
+
+```{r}
 initial_map <- leaflet()%>%
   addTiles %>%
-  addPolylines(data = Macleish_trails, color = "red")
+  addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1)
 initial_map %>%
   addPolylines(data = Contours, weight = 1)
+```
 
+```{r}
+intersections <- Macleish_trails %>%
+  st_intersection(Contours)
+```
+
+```{r}
+Macleish_trails %>%
+  st_intersects(Contours)
 ```
