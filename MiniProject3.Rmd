@@ -34,16 +34,26 @@ trail_colors <- colorFactor("viridis", Macleish_trails %>%
 ```
 
 ```{r}
-initial_map <- leaflet()%>%
-  addTiles %>%
-  addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1)
-initial_map %>%
-  addPolylines(data = Contours, weight = 1)
+intersections <- Macleish_trails %>%
+  st_intersection(Contours)
 ```
 
 ```{r}
-intersections <- Macleish_trails %>%
-  st_intersection(Contours)
+initial_map <- leaflet()%>%
+  addTiles %>%
+  addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1) %>%
+  addPolylines(data = Contours, weight = 1) 
+```
+
+
+```{r}
+initial_map %>%
+  addMarkers(data = st_cast(intersections, "POINT"))
+```
+
+```{r}
+cast_intersections <- intersections %>%
+  st_cast("POINT")
 ```
 
 ```{r}
