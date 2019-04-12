@@ -60,3 +60,13 @@ cast_intersections <- intersections %>%
 Macleish_trails %>%
   st_intersects(Contours)
 ```
+
+```{r}
+length_trails <-Macleish_trails %>%
+  mutate(length = st_length(geometry))
+```
+
+```{r}
+Macleish_trails %>%
+   st_distance()
+```
