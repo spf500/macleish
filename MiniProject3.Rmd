@@ -45,16 +45,38 @@ initial_map <- leaflet()%>%
   addPolylines(data = Contours, weight = 1) 
 ```
 
+```{r}
+cast_intersections <- intersections %>%
+  st_cast("MULTIPOINT")%>%
+  st_cast("POINT")
+```
+
+
 
 ```{r}
 initial_map %>%
-  addMarkers(data = st_cast(intersections, "POINT"))
+  addMarkers(data = cast_intersections)
 ```
 
 ```{r}
-cast_intersections <- intersections %>%
-  st_cast("POINT")
+eastern_loop <- cast_intersections %>%
+  select("name", "ELEV_M") %>%
+  filter(name == "Eastern Loop")
 ```
+```{r}
+eastern_loop %>%
+  ggplot(aes(x = "name", y = "ELEV_M")) +
+  geom_point()
+```
+
+
+```{r}
+cast_intersections %>% 
+  filter(name == "Eastern Loop") %>%
+  ggplot() +
+  geom_sf()
+```
+
 
 ```{r}
 Macleish_trails %>%
