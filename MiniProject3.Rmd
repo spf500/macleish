@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, fig.show = 'hold', out.width = '33%')
 ```
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(macleish)
 library(leaflet)
@@ -21,46 +21,42 @@ Supporting data includes:
 Existing trails shapefile
 10’ contour elevation data
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 Macleish_trails <- macleish_layers %>%
   pluck("trails")
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 Contours <- macleish_layers %>%
   pluck("contours_3m")
 ```
 
-```{r}
+```{r, message= FALSE, warning = FALSE}
 trail_colors <- colorFactor("viridis", Macleish_trails %>%
                               pull(name))
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 intersections <- Macleish_trails %>%
   st_intersection(Contours)
 ```
 
-```{r}
-initial_map <- leaflet()%>%
+```{r, message = FALSE, warning = FALSE}
+initial_map <- leaflet() %>%
   addTiles %>%
   addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1) %>%
   addPolylines(data = Contours, weight = 1) 
+
+initial_map
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 cast_intersections <- intersections %>%
   st_cast("MULTIPOINT")%>%
   st_cast("POINT")
 ```
 
-
-```{r}
-initial_map %>%
-  addMarkers(data = cast_intersections)
-```
-
-```{r}
+```{r, message = FALSE, warning = FALSE}
 length_trails <-Macleish_trails %>%
   mutate(length = st_length(geometry)) %>%
   group_by(name) %>%
@@ -70,13 +66,13 @@ print(length_trails)
 ```
 
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 all_loops <- cast_intersections %>%
   select("name", "ELEV_M") %>%
   st_set_geometry(NULL)
 ```
 
-```{r}
+```{r, message = FALSE, warning = FALSE}
 elevation_profile <- function(trail_name) {
   
   all_loops %>%
@@ -91,8 +87,7 @@ elevation_profile <- function(trail_name) {
 ```
 
 
-```{r}
-
+```{r, message = FALSE, warning = FALSE}
 elevation_profile("Porcupine Trail")
 elevation_profile("Western Loop")
 elevation_profile("Easy Out")
