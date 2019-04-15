@@ -60,13 +60,17 @@ initial_map %>%
 
 ```{r}
 eastern_loop <- cast_intersections %>%
-  select("name", "ELEV_M") %>%
-  filter(name == "Eastern Loop")
+  select("name", "ELEV_M", "ELEV_FT") %>%
+  filter(name == "Eastern Loop") %>%
+  st_set_geometry(NULL) %>%
+  mutate(id = row_number())
 ```
+
 ```{r}
 eastern_loop %>%
-  ggplot(aes(x = "name", y = "ELEV_M")) +
-  geom_point()
+  ggplot(aes( x = id, y = ELEV_M)) +
+  geom_point()+
+  geom_line()
 ```
 
 
