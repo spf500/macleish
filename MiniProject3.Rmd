@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r setup, include=FALSE, message = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.show = 'hold', out.width = '33%')
 ```
 
 ```{r, message = FALSE}
@@ -92,6 +92,7 @@ elevation_profile <- function(trail_name) {
 
 
 ```{r}
+
 elevation_profile("Porcupine Trail")
 elevation_profile("Western Loop")
 elevation_profile("Easy Out")
