@@ -1,6 +1,9 @@
 ---
 title: "Mini Project 3"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
+
 ---
 
 ```{r setup, include=FALSE, message = FALSE}
@@ -48,9 +51,8 @@ initial_map <- leaflet()%>%
 ```{r}
 cast_intersections <- intersections %>%
   st_cast("MULTIPOINT")%>%
-  st_cast("POINT")%>%
+  st_cast("POINT")
 ```
-
 
 
 ```{r}
@@ -63,47 +65,10 @@ length_trails <-Macleish_trails %>%
   mutate(length = st_length(geometry)) %>%
   group_by(name) %>%
   summarise(totat_length = sum(length))
+
+print(length_trails)
 ```
 
-```{r}
-eastern_loop <- cast_intersections %>%
-  select("name", "ELEV_M", "ELEV_FT") %>%
-  filter(name == "Eastern Loop") %>%
-  st_set_geometry(NULL) %>%
-  mutate(id = row_number())
-```
-
-```{r}
-eastern_loop %>%
-  ggplot(aes( x = id, y = ELEV_M)) +
-  geom_point()+
-  geom_smooth(span = 0.2) 
-
-```
-
-```{r}
-eastern_loop %>%
-  ggplot(aes( x = id, y = ELEV_M)) +
-  geom_point()+
-  geom_line() 
-
-```
-
-```{r}
-western_loop <- cast_intersections %>%
-  select("name", "ELEV_M", "ELEV_FT") %>%
-  filter(name == "Western Loop") %>%
-  st_set_geometry(NULL) %>%
-  mutate(id = row_number())
-```
-
-```{r}
-western_loop %>%
-  ggplot(aes( x = id, y = ELEV_M)) +
-  geom_point()+
-  geom_smooth(span = 0.2) 
-
-```
 
 ```{r}
 all_loops <- cast_intersections %>%
@@ -119,34 +84,24 @@ elevation_profile <- function(trail_name) {
     mutate(id = row_number()) %>%
     ggplot(aes(x = id, y = ELEV_M)) + 
     geom_point() + 
-    geom_line()
+    geom_line() + 
+    expand_limits(x = c(0,50), y = c(210, 290)) +
+    labs(title = trail_name)
 }
 ```
 
+
 ```{r}
+elevation_profile("Porcupine Trail")
 elevation_profile("Western Loop")
-```
-
-
-###probably not useful
-
-
-```{r}
-cast_intersections %>% 
-  filter(name == "Eastern Loop") %>%
-  ggplot() +
-  geom_sf()
-```
-
-
-```{r}
-Macleish_trails %>%
-  st_intersects(Contours)
+elevation_profile("Easy Out")
+elevation_profile("Eastern Loop")
+elevation_profile("Snowmobile Trail")
+elevation_profile("Poplar Hill Road")
+elevation_profile("entry trail")
+elevation_profile("Driveway")
+elevation_profile("Vernal Pool Loop")
 ```
 
 
 
-```{r}
-Macleish_trails %>%
-   st_distance()
-```
