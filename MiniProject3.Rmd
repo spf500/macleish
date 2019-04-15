@@ -59,6 +59,13 @@ initial_map %>%
 ```
 
 ```{r}
+length_trails <-Macleish_trails %>%
+  mutate(length = st_length(geometry)) %>%
+  group_by(name) %>%
+  summarise(totat_length = sum(length))
+```
+
+```{r}
 eastern_loop <- cast_intersections %>%
   select("name", "ELEV_M", "ELEV_FT") %>%
   filter(name == "Eastern Loop") %>%
@@ -70,8 +77,58 @@ eastern_loop <- cast_intersections %>%
 eastern_loop %>%
   ggplot(aes( x = id, y = ELEV_M)) +
   geom_point()+
-  geom_line()
+  geom_smooth(span = 0.2) 
+
 ```
+
+```{r}
+eastern_loop %>%
+  ggplot(aes( x = id, y = ELEV_M)) +
+  geom_point()+
+  geom_line() 
+
+```
+
+```{r}
+western_loop <- cast_intersections %>%
+  select("name", "ELEV_M", "ELEV_FT") %>%
+  filter(name == "Western Loop") %>%
+  st_set_geometry(NULL) %>%
+  mutate(id = row_number())
+```
+
+```{r}
+western_loop %>%
+  ggplot(aes( x = id, y = ELEV_M)) +
+  geom_point()+
+  geom_smooth(span = 0.2) 
+
+```
+
+```{r}
+all_loops <- cast_intersections %>%
+  select("name", "ELEV_M") %>%
+  st_set_geometry(NULL) %>%
+  mutate(id = row_number())
+```
+
+```{r}
+all_loops %>%
+  ggplot(aes(x = id, y = ELEV_M)) +
+  geom_point() + 
+  geom_line()+
+  facet_wrap(~name)
+```
+
+```{r}
+all_loops %>%
+  ggplot(aes(x = id, y = ELEV_M)) +
+  geom_point() + 
+  geom_smooth(span = 0.3)+
+  facet_wrap(~name)
+```
+
+###probably not useful
 
 
 ```{r}
@@ -87,10 +144,7 @@ Macleish_trails %>%
   st_intersects(Contours)
 ```
 
-```{r}
-length_trails <-Macleish_trails %>%
-  mutate(length = st_length(geometry))
-```
+
 
 ```{r}
 Macleish_trails %>%
