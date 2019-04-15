@@ -48,7 +48,7 @@ initial_map <- leaflet()%>%
 ```{r}
 cast_intersections <- intersections %>%
   st_cast("MULTIPOINT")%>%
-  st_cast("POINT")
+  st_cast("POINT")%>%
 ```
 
 
@@ -108,25 +108,25 @@ western_loop %>%
 ```{r}
 all_loops <- cast_intersections %>%
   select("name", "ELEV_M") %>%
-  st_set_geometry(NULL) %>%
-  mutate(id = row_number())
+  st_set_geometry(NULL)
 ```
 
 ```{r}
-all_loops %>%
-  ggplot(aes(x = id, y = ELEV_M)) +
-  geom_point() + 
-  geom_line()+
-  facet_wrap(~name)
+elevation_profile <- function(trail_name) {
+  
+  all_loops %>%
+    filter(name == trail_name) %>%
+    mutate(id = row_number()) %>%
+    ggplot(aes(x = id, y = ELEV_M)) + 
+    geom_point() + 
+    geom_line()
+}
 ```
 
 ```{r}
-all_loops %>%
-  ggplot(aes(x = id, y = ELEV_M)) +
-  geom_point() + 
-  geom_smooth(span = 0.3)+
-  facet_wrap(~name)
+elevation_profile("Western Loop")
 ```
+
 
 ###probably not useful
 
