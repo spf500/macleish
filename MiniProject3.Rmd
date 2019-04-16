@@ -3,11 +3,10 @@ title: "Mini Project 3"
 output: 
   html_document:
     code_folding: hide
-
 ---
 
 ```{r setup, include=FALSE, message = FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.show = 'hold', out.width = '33%')
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, message = FALSE, warning = FALSE}
@@ -15,11 +14,18 @@ library(tidyverse)
 library(macleish)
 library(leaflet)
 library(sf)
+library(knitr)
+library(RColorBrewer)
 ```
 MacLeish has approximately four miles of built trail for use by field station visitors. We would like to be able to classify these trails as “Easy,” “Moderate,” or “Difficult” based on their length and change in elevation. Use the spatial data to develop a heuristic that will classify these (or any other) trails based on their difficulty. You might want to consult existing trail rating systems. It would be cool if you could create elevation profiles (e.g., this one).
 Supporting data includes:
 Existing trails shapefile
 10’ contour elevation data
+
+For mini-project 3 [^1]
+
+
+[^1]: Github repository: https://github.com/spf500/macleish
 
 ```{r, message = FALSE, warning = FALSE}
 Macleish_trails <- macleish_layers %>%
@@ -32,7 +38,7 @@ Contours <- macleish_layers %>%
 ```
 
 ```{r, message= FALSE, warning = FALSE}
-trail_colors <- colorFactor("viridis", Macleish_trails %>%
+trail_colors <- colorFactor("Set1", Macleish_trails %>%
                               pull(name))
 ```
 
@@ -44,8 +50,9 @@ intersections <- Macleish_trails %>%
 ```{r, message = FALSE, warning = FALSE}
 initial_map <- leaflet() %>%
   addTiles %>%
+  addPolylines(data = Contours, weight = 1, opacity = .3) %>%
   addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1) %>%
-  addPolylines(data = Contours, weight = 1) 
+  addLegend(pal = trail_colors, values = Macleish_trails$name) 
 
 initial_map
 ```
@@ -60,11 +67,18 @@ cast_intersections <- intersections %>%
 length_trails <-Macleish_trails %>%
   mutate(length = st_length(geometry)) %>%
   group_by(name) %>%
-  summarise(totat_length = sum(length))
-
-print(length_trails)
+  summarise(total_length = sum(length))%>%
+  arrange(desc(total_length))
 ```
 
+```{r, message = FALSE, warning = FALSE}
+  length_trails_df <- length_trails %>%
+  st_set_geometry(NULL)
+```
+
+```{r}
+knitr::kable(length_trails_df)
+```
 
 ```{r, message = FALSE, warning = FALSE}
 all_loops <- cast_intersections %>%
@@ -88,6 +102,10 @@ elevation_profile <- function(trail_name) {
 
 
 ```{r, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.show = 'hold', out.width = '33%')
+```
+
+```{r, message = FALSE, warning = FALSE}
 elevation_profile("Porcupine Trail")
 elevation_profile("Western Loop")
 elevation_profile("Easy Out")
@@ -99,5 +117,19 @@ elevation_profile("Driveway")
 elevation_profile("Vernal Pool Loop")
 ```
 
+```{r, message= FALSE, warning = FALSE}
+length_colors <- colorQuantile("YlOrRd", length_trails %>%
+                              pull(total_length))
+```
 
+```{r, message = FALSE, warning = FALSE}
+rankings_map <- leaflet() %>%
+  addTiles %>%
+  addPolylines(data = length_trails, color = ~length_colors(total_length), weight = 2, opacity = 1) %>%
+  addPolylines(data = Contours, weight = 1, opacity = 0.2, options = pathOptions(interactive = FALSE)) %>%
+  addLegend(pal = length_colors, values = length_trails$total_length) 
+
+rankings_map
+
+```
 
