@@ -1,5 +1,7 @@
 ---
 title: "Mini Project 3"
+author: Lucy Hall and Lauren Low
+date: "4/16/19"
 output: 
   html_document:
     code_folding: hide
@@ -17,13 +19,10 @@ library(sf)
 library(knitr)
 library(RColorBrewer)
 ```
+
+For mini-project 3[^1], we attempted to answer this question:
+
 MacLeish has approximately four miles of built trail for use by field station visitors. We would like to be able to classify these trails as “Easy,” “Moderate,” or “Difficult” based on their length and change in elevation. Use the spatial data to develop a heuristic that will classify these (or any other) trails based on their difficulty. You might want to consult existing trail rating systems. It would be cool if you could create elevation profiles (e.g., this one).
-Supporting data includes:
-Existing trails shapefile
-10’ contour elevation data
-
-For mini-project 3 [^1]
-
 
 [^1]: Github repository: https://github.com/spf500/macleish
 
@@ -38,47 +37,46 @@ Contours <- macleish_layers %>%
 ```
 
 ```{r, message= FALSE, warning = FALSE}
-length_colors <- colorQuantile("YlOrRd", length_trails %>%
-                              pull(total_length))
-```
-
-```{r, message = FALSE, warning = FALSE}
-rankings_map <- leaflet() %>%
-  addTiles %>%
-  addPolylines(data = length_trails, color = ~length_colors(total_length), weight = 2, opacity = 1) %>%
-  addPolylines(data = Contours, weight = 1, opacity = 0.2, options = pathOptions(interactive = FALSE)) %>%
-  addLegend(pal = length_colors, values = length_trails$total_length) 
-
-rankings_map
-
-```
-
-
-```{r, message = FALSE, warning = FALSE}
-intersections <- Macleish_trails %>%
-  st_intersection(Contours)
-```
-
-```{r, message= FALSE, warning = FALSE}
 trail_colors <- colorFactor("Set1", Macleish_trails %>%
                               pull(name))
 ```
+
+##Trail Map
 
 ```{r, message = FALSE, warning = FALSE}
 initial_map <- leaflet() %>%
   addTiles %>%
   addPolylines(data = Contours, weight = 1, opacity = .3) %>%
   addPolylines(data = Macleish_trails, color = ~trail_colors(name), weight = 2, opacity = 1) %>%
-  addLegend(pal = trail_colors, values = Macleish_trails$name) 
+  addLegend(pal = trail_colors, values = Macleish_trails$name, title = "Trail Name") 
 
 initial_map
 ```
 
-```{r, message = FALSE, warning = FALSE}
-cast_intersections <- intersections %>%
-  st_cast("MULTIPOINT")%>%
-  st_cast("POINT")
+
+
+##Map of Trails Ranked by Difficulty
+This shows our final rankings of the trails, which takes into account both length and slope. As you can see from the graphics below, the longer trails also have more dramatic or more frequent changes in elevation, making them harder. Therefore Eastern Loop and the Snowmobile Trail are difficult; Poplar Hill Road, Porcupine Trail, and Western Loop are moderate; and the rest are all easy.
+
+
+```{r}
+#This code assigns the rankings to each trail manually, as the rankings are not calculated with a hard-and-fast equation that R can use.
+
+Macleish_trails["difficulty"] <- c("Moderate","Difficult","Moderate","Easy","Moderate","Difficult","Difficult","Easy","Moderate","Easy","Moderate","Easy","Difficult","Difficult","Easy")
+
+
+trail_colors2 <- colorFactor("Set1", Macleish_trails %>%
+                             pull(difficulty))
+
+difficulty_map <- leaflet() %>%
+ addTiles %>%
+ addPolylines(data = Contours, weight = 1, opacity = .3) %>%
+ addPolylines(data = Macleish_trails, color = ~trail_colors2(difficulty), weight = 2, opacity = 1) %>%
+ addLegend(pal = trail_colors2, values = Macleish_trails$difficulty, title = "Difficulty Ranking")
+difficulty_map
 ```
+
+Trail length is calculate simply by using group_by to sum the lengths of all the different sections of each trail.
 
 ```{r, message = FALSE, warning = FALSE}
 length_trails <-Macleish_trails %>%
@@ -89,21 +87,33 @@ length_trails <-Macleish_trails %>%
 ```
 
 ```{r, message = FALSE, warning = FALSE}
+#this drops the geometry column so the table is easy to read
   length_trails_df <- length_trails %>%
   st_set_geometry(NULL)
 ```
+
+
+##Trail Lengths
 
 ```{r}
 knitr::kable(length_trails_df)
 ```
 
 ```{r, message = FALSE, warning = FALSE}
-all_loops <- cast_intersections %>%
-  select("name", "ELEV_M") %>%
-  st_set_geometry(NULL)
+#Shows when a trail crosses a contour line, and where that happens
+intersections <- Macleish_trails %>%
+  st_intersection(Contours)%>%
+  st_cast("MULTIPOINT")%>%
+  st_cast("POINT")
 ```
 
 ```{r, message = FALSE, warning = FALSE}
+#this creates a funtion that lets ggplot map out each trail based on elevation. all_loops drops the geomtry column so ggplot can read the file, then the elevation_profile function filters for one trail. Because each point is taken at regular intervals, we can assign each point an id number so that they will be equally spaced on the graph. The only problem is that the points are out of order. The graphs are formatted so they all have the same x- and y-scale, because otherwise they will all vary depending on length and contours crossed.
+
+all_loops <- intersections %>%
+  select("name", "ELEV_M") %>%
+  st_set_geometry(NULL)
+
 elevation_profile <- function(trail_name) {
   
   all_loops %>%
@@ -117,26 +127,36 @@ elevation_profile <- function(trail_name) {
 }
 ```
 
+#Elevation Profiles
+These graphs are meant to show the change in elevation over the course of a trail, but unfortunately the points are out of order and we can't figure out how to fix that. However, they are still useful because they give a general idea of how many times the elevation changes, and over what range of elevations this occurs.
 
 ```{r, message = FALSE, warning = FALSE}
+#formatting so all of the graphs will display in a 3x3 grid
 knitr::opts_chunk$set(echo = TRUE, fig.show = 'hold', out.width = '33%')
 ```
 
 ```{r, message = FALSE, warning = FALSE}
-elevation_profile("Porcupine Trail")
-elevation_profile("Western Loop")
-elevation_profile("Easy Out")
 elevation_profile("Eastern Loop")
 elevation_profile("Snowmobile Trail")
 elevation_profile("Poplar Hill Road")
-elevation_profile("entry trail")
+elevation_profile("Porcupine Trail")
+elevation_profile("Western Loop")
 elevation_profile("Driveway")
+elevation_profile("Easy Out")
+elevation_profile("entry trail")
 elevation_profile("Vernal Pool Loop")
 ```
 
+###A Recommendation
+We propose that Smith College and MacLeish Field Station design a new map for MacLeish.  This map will be a color-coded map, which will indicate the difficulty of each trail while showing contours for extra indication of difficulty.  We also recommend that MacLeish post signs all throughout each trail (i.e. an easy trail will have a green triangle mark, a moderate trail will have a blue square mark, and a difficult trail will have a black diamond mark).  Each sign will correspond to the colors/symbols on the MacLeish map.
 
+Based on a rough cost analysis, implementing signs and new maps would cost about $300.  There are nine trails, and we would like to put a sign at the beginning and end of each trail, which results in the creation of 18 signs.  Each sign will cost about $10 to create, thus creating trail signs for all of MacLeish will cost $180.  Further, we hope to purchase 4 gallons of paint (green, blue, black, and brown) to paint signs as well as paint blazes on trees.  Each gallon will cost about $30, resulting in a total cost of $120 for paint
 
-PROOF THAT THE POINTS ARE IN ORDER ORIGINALLY:
+Developing these signs as blazes should take no more than one week, especially if the weather is cooperative.  Signs can be developed and created anywhere with access to power tools, including  hand drills and saws.  On a sunny day, blazes should be painted on to rocks and trees along each trail.  It is also important that the following day be sunny, as the rain has the potential to remove undried paint.  Many hands should be on deck for this project.  For optimal results, it would be beneficial to have a team of 10-20 people, one to two people per trail working on painting blazes and five plus people working on creating/distributing signs.
+
+There should be few environmental impacts of this project.  However, it is important that we make sure to paint blazes around animal habitats, rather than on them (i.e. paint a blaze on a tree trunk rather than near a hole/nest to avoid habitat disturbance.  Further, there are few road blocks other than determining where to place blazes and signs along the trail.
+
+(P.S.- proof that the points are originally in order in the Macleish_trails layer. These are the first three coordinates of the Porcupine Trail. We tried casting to point and then back to multipoint, then adding an index column, but then couldn't figure out how to either calculate intersections with the contour layer or how to join it with the intersections table.)
 
 ```{r}
 my_points <- tribble(
@@ -154,63 +174,3 @@ initial_map %>%
   addMarkers(data = my_sf)
 ```
 
-```{r}
-porcupine_trail_only <- Macleish_trails %>%
-  filter(name == "Porcupine Trail") 
-```
-
-```{r}
-porcupine_trail_cast <- Macleish_trails %>%
-  filter(name == "Porcupine Trail") %>% 
-  st_cast("MULTIPOINT")%>%
-  st_cast("POINT")%>%
-  mutate(id = row_number())
-```
-
-```{r, message = FALSE, warning = FALSE}
-porcupine_intersections <- porcupine_trail_only %>%
-  st_intersection(Contours) %>%
-  st_cast("MULTIPOINT")%>%
-  st_cast("POINT")
-```
-
-```{r}
-porcupine_elev_ordered <-
-  st_join(porcupine_trail_cast, porcupine_intersections)
-```
-
-
-```{r, message = FALSE, warning = FALSE}
-all_loops <- cast_intersections %>%
-  select("name", "ELEV_M") %>%
-  st_set_geometry(NULL)
-```
-
-```{r, message = FALSE, warning = FALSE}
-elevation_profile <- function(trail_name) {
-  
-  all_loops %>%
-    filter(name == trail_name) %>%
-    mutate(id = row_number()) %>%
-    ggplot(aes(x = id, y = ELEV_M)) + 
-    geom_point() + 
-    geom_line() + 
-    expand_limits(x = c(0,50), y = c(210, 290)) +
-    labs(title = trail_name)
-}
-```
-
-```{r}
-my_points <- tribble(
-  ~point, ~lon, ~lat,
-  "A", -72.6836662428764, 42.453542675534,
-  "B", -72.6833819549775, 42.4523518432371
-  
-  
-)
-
-my_sf = st_as_sf(my_points, coords = c("lon", "lat"))
-
-initial_map %>%
-  addMarkers(data = my_sf)
-```
